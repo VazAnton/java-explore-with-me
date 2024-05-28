@@ -66,7 +66,7 @@ public class StatisticsServiceImpl implements StatisticsService {
             long hits = statistics.stream()
                     .filter(statisticsDtoOutput -> statisticsDtoOutput.getUri().equals(statistic.getUri())
                             && statisticsDtoOutput.getIp().equals(statistic.getIp())).count();
-            StatisticsModelDtoOutput statisticsModelDtoOutput = statisticsMapper.StatisticsDtoOutputToFinalDto(statistic);
+            StatisticsModelDtoOutput statisticsModelDtoOutput = statisticsMapper.statisticsDtoOutputToFinalDto(statistic);
             statisticsModelDtoOutput.setHits((int) hits);
             statisticsWithHits.add(statisticsModelDtoOutput);
         }

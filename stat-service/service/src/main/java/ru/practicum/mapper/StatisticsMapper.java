@@ -31,7 +31,7 @@ public class StatisticsMapper {
         return statisticsModelDto;
     }
 
-    public StatisticsModelDtoOutput StatisticsDtoOutputToFinalDto(StatisticsDtoOutput statisticsDtoOutput) {
+    public StatisticsModelDtoOutput statisticsDtoOutputToFinalDto(StatisticsDtoOutput statisticsDtoOutput) {
         if (statisticsDtoOutput == null) {
             return null;
         }

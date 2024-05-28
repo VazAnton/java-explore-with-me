@@ -13,7 +13,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> IncorrectDateExceptionHandler(final IncorrectDateTimeException e) {
+    public Map<String, String> onIncorrectDateExceptionHandler(final IncorrectDateTimeException e) {
         return Map.of("Ошибка при указании дат", e.getMessage());
     }
 }
