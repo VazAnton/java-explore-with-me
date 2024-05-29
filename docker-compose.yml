@@ -1,15 +1,30 @@
-version: '3.1'
+version: "3.8"
+
 services:
-  stats-server:
+  db:
+    image: postgres:14-alpine
+    container_name: "explorers-database"
+    ports:
+      - "6541:5432"
+    environment:
+      - POSTGRES_DB=explore-with-me
+      - POSTGRES_USER=explore-with-me
+      - POSTGRES_PASSWORD=just_explorer
+
+  stat-service:
+    image: service
+    container_name: "container-with-stat-service"
+    build: ./stat-service/service
     ports:
       - "9090:9090"
+    depends_on:
+      - db
+    environment:
+      - DB_NAME=explore-with-me
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/explore-with-me
+      - SPRING_DATASOURCE_USERNAME=explore-with-me
+      - SPRING_DATASOURCE_PASSWORD=just_explorer
+      - DB_HOST=db
+      - DB_PORT=5432
 
-  stats-db:
-    image: postgres:14-alpine
 
-  ewm-service:
-    ports:
-      - "8080:8080"
-
-  ewm-db:
-    image: postgres:14-alpine
