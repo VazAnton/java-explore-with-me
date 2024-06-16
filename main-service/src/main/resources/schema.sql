@@ -42,7 +42,7 @@ published TIMESTAMP WITHOUT TIME ZONE,
 request_moderation BOOLEAN NOT NULL,
 state varchar NOT NULL,
 title varchar NOT NULL,
-views INTEGER
+views INTEGER NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS requests

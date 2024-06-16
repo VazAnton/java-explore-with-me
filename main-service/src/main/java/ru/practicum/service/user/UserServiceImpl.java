@@ -55,8 +55,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDto getUser(long userId) {
+        return userMapper.userToUserDto(getUserFromDb(userId));
+    }
+
+    private User getUserFromDb(long id) {
+        return userRepository.findById(id).orElseThrow(() ->
+                new EntityNotFoundException("Внимание! Пользователя с таким уникальным номером не существует!"));
+    }
+
+    @Override
     public void deleteUser(long userId) {
         if (!userRepository.existsById(userId)) {
+            log.error("Пользователя с таким уникальным номером не существует!");
             throw new EntityNotFoundException("Внимание! Пользователя с таким уникальным номером не существует!");
         } else {
             userRepository.deleteById(userId);
