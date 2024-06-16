@@ -9,6 +9,7 @@ import ru.practicum.model.event.Event;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
 
@@ -33,7 +34,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     List<Event> findAllByEventDateIsBeforeOrEventDateEquals(LocalDateTime before, LocalDateTime equals);
 
-    //List<Event> findAllByConfirmedRequestsLessThanEqual(int limit);
+    Set<Event> findAllByIdIn(List<Long> ids);
 
     List<Event> findAllByInitiatorIdIn(List<Long> userIds);
 
