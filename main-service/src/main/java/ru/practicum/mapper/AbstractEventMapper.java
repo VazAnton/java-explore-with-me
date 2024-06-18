@@ -3,10 +3,10 @@ package ru.practicum.mapper;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import ru.practicum.model.event.Event;
 import ru.practicum.model.dto.event.EventFullDto;
 import ru.practicum.model.dto.event.EventShortDto;
 import ru.practicum.model.dto.event.NewEventDto;
+import ru.practicum.model.event.Event;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -45,16 +45,16 @@ public abstract class AbstractEventMapper {
         Event event = new Event();
         event.setId(eventFullDto.getId());
         event.setAnnotation(eventFullDto.getAnnotation());
-        //CategoryMapper categoryMapper = new CategoryMapperImpl();
-        //event.setCategory(categoryMapper.categoryDtoToCategory(eventFullDto.getCategory()));
+        CategoryMapper categoryMapper = new CategoryMapperImpl();
+        event.setCategory(categoryMapper.categoryDtoToCategory(eventFullDto.getCategory()));
         event.setConfirmedRequests(eventFullDto.getConfirmedRequests());
         event.setCreatedOn(LocalDateTime.parse(eventFullDto.getCreatedOn(), DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         event.setDescription(eventFullDto.getDescription());
         event.setEventDate(LocalDateTime.parse(eventFullDto.getEventDate(), EVENT_DATE_FORMATTER));
-        //UserMapper userMapper = new UserMapperImpl();
-        //event.setInitiator(userMapper.userShortDtoToUser(eventFullDto.getInitiator()));
-        //LocationMapper locationMapper = new LocationMapperImpl();
-        //event.setLocation(locationMapper.locationDtoToLocation(eventFullDto.getLocation()));
+        UserMapper userMapper = new UserMapperImpl();
+        event.setInitiator(userMapper.userShortDtoToUser(eventFullDto.getInitiator()));
+        LocationMapper locationMapper = new LocationMapperImpl();
+        event.setLocation(locationMapper.locationDtoToLocation(eventFullDto.getLocation()));
         event.setPaid(eventFullDto.getPaid());
         event.setParticipantLimit(eventFullDto.getParticipantLimit());
         if (eventFullDto.getPublishedOn() != null) {

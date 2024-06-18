@@ -3,9 +3,9 @@ package ru.practicum.controller.event;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.exception.EntityNotFoundException;
-import ru.practicum.model.enums.State;
 import ru.practicum.model.dto.event.EventFullDto;
 import ru.practicum.model.dto.event.EventShortDto;
+import ru.practicum.model.enums.State;
 import ru.practicum.service.event.EventService;
 
 import java.util.List;

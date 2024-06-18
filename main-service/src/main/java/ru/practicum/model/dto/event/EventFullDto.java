@@ -4,9 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.practicum.model.dto.category.CategoryDto;
-import ru.practicum.model.enums.State;
 import ru.practicum.model.dto.location.LocationDto;
 import ru.practicum.model.dto.user.UserShortDto;
+import ru.practicum.model.enums.State;
 
 @Data
 @NoArgsConstructor

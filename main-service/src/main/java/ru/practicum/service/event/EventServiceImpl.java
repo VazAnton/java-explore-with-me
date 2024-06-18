@@ -1,13 +1,18 @@
 package ru.practicum.service.event;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.StatisticsClient;
 import ru.practicum.StatisticsModelDtoInput;
+import ru.practicum.StatisticsModelDtoOutput;
 import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.EntityNotFoundException;
 import ru.practicum.exception.IncorrectDataException;
@@ -20,11 +25,13 @@ import ru.practicum.model.dto.category.CategoryDto;
 import ru.practicum.model.dto.event.*;
 import ru.practicum.model.dto.user.UserDto;
 import ru.practicum.model.enums.State;
+import ru.practicum.model.enums.Status;
 import ru.practicum.model.event.Event;
 import ru.practicum.model.location.Location;
 import ru.practicum.model.user.User;
 import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.LocationRepository;
+import ru.practicum.repository.RequestRepository;
 import ru.practicum.repository.UserRepository;
 import ru.practicum.service.category.CategoryService;
 import ru.practicum.service.user.UserService;
@@ -54,9 +61,10 @@ public class EventServiceImpl implements EventService {
     private final UserMapper userMapper;
     private final LocationRepository locationRepository;
     private final LocationMapper locationMapper;
+    private final RequestRepository requestRepository;
     private final HttpServletRequest httpServletRequest;
-    private static final DateTimeFormatter EVENT_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
+    private final ObjectMapper objectMapper;
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
     @Override
@@ -73,7 +81,7 @@ public class EventServiceImpl implements EventService {
         if (eventDtoInput.getRequestModeration() == null) {
             event.setRequestModeration(true);
         }
-        LocalDateTime eventDate = LocalDateTime.parse(eventDtoInput.getEventDate(), EVENT_DATE_FORMATTER);
+        LocalDateTime eventDate = LocalDateTime.parse(eventDtoInput.getEventDate(), DATE_TIME_FORMATTER);
         if (eventDate.isBefore(LocalDateTime.now().plusHours(2))) {
             log.error("Дата и время, на которые намечено событие не может быть раньше, чем через два часа от текущего " +
                     "момента!");
@@ -116,7 +124,7 @@ public class EventServiceImpl implements EventService {
             eventFromDb.setDescription(eventRequestInput.getDescription());
         }
         if (eventRequestInput.getEventDate() != null) {
-            LocalDateTime eventDate = LocalDateTime.parse(eventRequestInput.getEventDate(), EVENT_DATE_FORMATTER);
+            LocalDateTime eventDate = LocalDateTime.parse(eventRequestInput.getEventDate(), DATE_TIME_FORMATTER);
             if (eventDate.isBefore(eventFromDb.getPublishedOn())) {
                 log.error("Дата начала изменяемого события должна быть не ранее чем за час от даты публикации!");
                 throw new BadRequestException("Внимание! Дата начала изменяемого события должна быть не ранее " +
@@ -203,7 +211,7 @@ public class EventServiceImpl implements EventService {
             eventFromDb.setDescription(updateEventInput.getDescription());
         }
         if (updateEventInput.getEventDate() != null) {
-            LocalDateTime eventDate = LocalDateTime.parse(updateEventInput.getEventDate(), EVENT_DATE_FORMATTER);
+            LocalDateTime eventDate = LocalDateTime.parse(updateEventInput.getEventDate(), DATE_TIME_FORMATTER);
             if (eventDate.isBefore(LocalDateTime.now().plusHours(2))) {
                 log.error("Дата и время на которые намечено событие не может быть раньше, чем через два часа от " +
                         "текущего момента!");
@@ -302,15 +310,29 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto getEventById(long id) {
         Event eventFromDb = getEventFromDb(id);
-        String nowAsString = LocalDateTime.now().toString();
-//        statisticsClient.createHit(new StatisticsModelDtoInput("main-service,", httpServletRequest.getRequestURI(),
-//                httpServletRequest.getRemoteAddr(), nowAsString));
+        String nowAsString = LocalDateTime.now().format(DATE_TIME_FORMATTER);
+        statisticsClient.createHit(new StatisticsModelDtoInput("main-service", httpServletRequest.getRequestURI(),
+                httpServletRequest.getRemoteAddr(), nowAsString));
         List<String> uris = new ArrayList<>();
         uris.add(httpServletRequest.getRequestURI());
-        int viewsSum = 0;
-//        List<StatisticsModelDtoOutput> statistics = List.of(statisticsClient.getStatistics(eventFromDb.getCreatedOn().toString(),
-//                nowAsString, uris, true));
+        List<String> uri = new ArrayList<>();
+        for (String s : uris) {
+            uri.add(s.replace("[", "").replace("]", ""));
+        }
+        ResponseEntity<Object> response = statisticsClient.getStatistics(eventFromDb.getCreatedOn().format(DATE_TIME_FORMATTER),
+                nowAsString, uri, true);
+        if (response.getStatusCode() == HttpStatus.OK) {
+            List<StatisticsModelDtoOutput> statistics = objectMapper.convertValue(response.getBody(),
+                    new TypeReference<List<StatisticsModelDtoOutput>>() {
+                    });
+            int viewsSum = 0;
+            for (StatisticsModelDtoOutput statisticsModelDtoOutput : statistics) {
+                viewsSum = viewsSum + statisticsModelDtoOutput.getHits();
+                eventFromDb.setViews(viewsSum);
+            }
+        }
         log.info("Успешно получена информация о выбранном событии!");
+        eventRepository.save(eventFromDb);
         return eventMapper.eventToEventFullDto(eventFromDb);
     }
 
@@ -319,7 +341,17 @@ public class EventServiceImpl implements EventService {
     public List<EventShortDto> getShortEventInfoByParameters(String text, List<Long> categories, Boolean paid,
                                                              String rangeStart, String rangeEnd, Boolean onlyAvailable,
                                                              String sort, Integer from, Integer size) {
-        List<Event> allPublishedEvents = eventRepository.findAllByStateEquals(State.PUBLISHED);
+        String nowAsString = LocalDateTime.now().toString();
+        statisticsClient.createHit(new StatisticsModelDtoInput("main-service,", httpServletRequest.getRequestURI(),
+                httpServletRequest.getRemoteAddr(), nowAsString));
+        List<String> uris = new ArrayList<>();
+        uris.add(httpServletRequest.getRequestURI());
+        List<Event> allPublishedEvents = eventRepository.findAllByStateEquals(State.PUBLISHED).stream()
+                .peek(event -> {
+                    int confirmedYet = requestRepository.findAllByEventIdAndStatusEquals(event.getId(), Status.CONFIRMED)
+                            .size();
+                    event.setConfirmedRequests(confirmedYet);
+                }).collect(Collectors.toList());
         if (text != null) {
             List<Event> eventsByText =
                     eventRepository.findAllByAnnotationContainingIgnoreCaseOrDescriptionContainingIgnoreCase(text, text);
@@ -354,14 +386,14 @@ public class EventServiceImpl implements EventService {
             }
         }
         if (rangeStart != null && rangeEnd != null) {
-            if (LocalDateTime.parse(rangeStart, EVENT_DATE_FORMATTER)
-                    .isAfter(LocalDateTime.parse(rangeEnd, EVENT_DATE_FORMATTER))) {
+            if (LocalDateTime.parse(rangeStart, DATE_TIME_FORMATTER)
+                    .isAfter(LocalDateTime.parse(rangeEnd, DATE_TIME_FORMATTER))) {
                 log.error("Передано неверное значение диапозона дат!");
                 throw new BadRequestException("Внимание! Передано неверное значение диапозона дат!");
             }
         }
         if (rangeStart != null) {
-            LocalDateTime start = LocalDateTime.parse(rangeStart, EVENT_DATE_FORMATTER);
+            LocalDateTime start = LocalDateTime.parse(rangeStart, DATE_TIME_FORMATTER);
             List<Event> eventsByStart = eventRepository.findAllByEventDateIsAfterOrEventDateEquals(start, start);
             if (!eventsByStart.isEmpty()) {
                 allPublishedEvents = allPublishedEvents.stream()
@@ -370,7 +402,7 @@ public class EventServiceImpl implements EventService {
             }
         }
         if (rangeEnd != null) {
-            LocalDateTime end = LocalDateTime.parse(rangeEnd, EVENT_DATE_FORMATTER);
+            LocalDateTime end = LocalDateTime.parse(rangeEnd, DATE_TIME_FORMATTER);
             List<Event> eventsByEnd = eventRepository.findAllByEventDateIsBeforeOrEventDateEquals(end, end);
             if (!eventsByEnd.isEmpty()) {
                 allPublishedEvents = allPublishedEvents.stream()
@@ -401,6 +433,21 @@ public class EventServiceImpl implements EventService {
                             .collect(Collectors.toList());
             }
         }
+        for (Event event : allPublishedEvents) {
+            ResponseEntity<Object> response = statisticsClient.getStatistics(event.getCreatedOn().toString(),
+                    nowAsString, uris, true);
+            if (response.getStatusCode() == HttpStatus.OK) {
+                List<StatisticsModelDtoOutput> statistics = objectMapper.convertValue(response.getBody(),
+                        new TypeReference<List<StatisticsModelDtoOutput>>() {
+                        });
+                int viewsSum = 0;
+                for (StatisticsModelDtoOutput statisticsModelDtoOutput : statistics) {
+                    viewsSum = viewsSum + statisticsModelDtoOutput.getHits();
+                    event.setViews(viewsSum);
+                }
+            }
+        }
+        eventRepository.saveAll(allPublishedEvents);
         return allPublishedEvents.stream()
                 .map(eventMapper::eventToEventShortDto)
                 .limit(size)
@@ -449,7 +496,7 @@ public class EventServiceImpl implements EventService {
             }
         }
         if (rangeStart != null) {
-            LocalDateTime start = LocalDateTime.parse(rangeStart, EVENT_DATE_FORMATTER);
+            LocalDateTime start = LocalDateTime.parse(rangeStart, DATE_TIME_FORMATTER);
             List<Event> eventsByStart = eventRepository.findAllByEventDateIsAfterOrEventDateEquals(start, start);
             if (!eventsByStart.isEmpty()) {
                 allEvents = allEvents.stream()
@@ -458,7 +505,7 @@ public class EventServiceImpl implements EventService {
             }
         }
         if (rangeEnd != null) {
-            LocalDateTime end = LocalDateTime.parse(rangeEnd, EVENT_DATE_FORMATTER);
+            LocalDateTime end = LocalDateTime.parse(rangeEnd, DATE_TIME_FORMATTER);
             List<Event> eventsByEnd = eventRepository.findAllByEventDateIsBeforeOrEventDateEquals(end, end);
             if (!eventsByEnd.isEmpty()) {
                 allEvents = allEvents.stream()
@@ -467,6 +514,11 @@ public class EventServiceImpl implements EventService {
             }
         }
         return allEvents.stream()
+                .peek(event -> {
+                    int confirmedYet = requestRepository.findAllByEventIdAndStatusEquals(event.getId(), Status.CONFIRMED)
+                            .size();
+                    event.setConfirmedRequests(confirmedYet);
+                })
                 .map(eventMapper::eventToEventFullDto)
                 .collect(Collectors.toList());
     }

@@ -9,6 +9,8 @@ import ru.practicum.StatisticsModelDtoOutput;
 import ru.practicum.service.StatisticsService;
 
 import javax.validation.Valid;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -29,6 +31,8 @@ public class StatisticsController {
                                                         @RequestParam String end,
                                                         @RequestParam(required = false) List<String> uris,
                                                         @RequestParam(defaultValue = "false") Boolean unique) {
-        return statisticsService.getStatistics(start, end, uris, unique);
+        String decodedStart = URLDecoder.decode(start, StandardCharsets.UTF_8);
+        String decodedEnd = URLDecoder.decode(end, StandardCharsets.UTF_8);
+        return statisticsService.getStatistics(decodedStart, decodedEnd, uris, unique);
     }
 }

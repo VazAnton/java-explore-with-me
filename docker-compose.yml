@@ -27,4 +27,27 @@ services:
       - DB_HOST=db
       - DB_PORT=5432
 
+  main-db:
+    image: postgres:14-alpine
+    container_name: "main-database"
+    ports:
+      - "6542:5432"
+    environment:
+      - POSTGRES_DB=main-service-db
+      - POSTGRES_USER=main-service-explorer
+      - POSTGRES_PASSWORD=just_explorer_but main
 
+  main-service:
+    image: main-service
+    container_name: "container-with-main-service"
+    build: ./main-service
+    ports:
+      - "8080:8080"
+    depends_on:
+    - main-db
+    environment:
+      - DB_NAME=main-service-db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://main-db:5432/main-service-db
+      - SPRING_DATASOURCE_USERNAME=main-service-explorer
+      - SPRING_DATASOURCE_PASSWORD=just_explorer_but main
+      - DB_HOST=main-db
