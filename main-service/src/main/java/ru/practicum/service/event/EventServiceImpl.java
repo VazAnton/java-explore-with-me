@@ -310,17 +310,17 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventFullDto getEventById(long id) {
         Event eventFromDb = getEventFromDb(id);
-        String nowAsString = LocalDateTime.now().format(DATE_TIME_FORMATTER);
-        statisticsClient.createHit(new StatisticsModelDtoInput("main-service", httpServletRequest.getRequestURI(),
-                httpServletRequest.getRemoteAddr(), nowAsString));
-        List<String> uris = new ArrayList<>();
-        uris.add(httpServletRequest.getRequestURI());
-        List<String> uri = new ArrayList<>();
-        for (String s : uris) {
-            uri.add(s.replace("[", "").replace("]", ""));
+        if (!eventFromDb.getState().equals(State.PUBLISHED)) {
+            throw new EntityNotFoundException("Внимание! События с таким уникальным номером не существует!");
         }
+        List<String> uris = new ArrayList<>();
+        String nowAsString = LocalDateTime.now().format(DATE_TIME_FORMATTER);
+        String uri = httpServletRequest.getRequestURI();
+        uris.add(uri);
+        statisticsClient.createHit(new StatisticsModelDtoInput("main-service", uri,
+                httpServletRequest.getRemoteAddr(), nowAsString));
         ResponseEntity<Object> response = statisticsClient.getStatistics(eventFromDb.getCreatedOn().format(DATE_TIME_FORMATTER),
-                nowAsString, uri, true);
+                nowAsString, uris, true);
         if (response.getStatusCode() == HttpStatus.OK) {
             List<StatisticsModelDtoOutput> statistics = objectMapper.convertValue(response.getBody(),
                     new TypeReference<List<StatisticsModelDtoOutput>>() {
@@ -337,12 +337,11 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<EventShortDto> getShortEventInfoByParameters(String text, List<Long> categories, Boolean paid,
                                                              String rangeStart, String rangeEnd, Boolean onlyAvailable,
                                                              String sort, Integer from, Integer size) {
         String nowAsString = LocalDateTime.now().toString();
-        statisticsClient.createHit(new StatisticsModelDtoInput("main-service,", httpServletRequest.getRequestURI(),
+        statisticsClient.createHit(new StatisticsModelDtoInput("main-service", httpServletRequest.getRequestURI(),
                 httpServletRequest.getRemoteAddr(), nowAsString));
         List<String> uris = new ArrayList<>();
         uris.add(httpServletRequest.getRequestURI());

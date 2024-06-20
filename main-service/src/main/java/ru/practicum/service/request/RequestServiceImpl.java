@@ -19,6 +19,7 @@ import ru.practicum.model.enums.State;
 import ru.practicum.model.enums.Status;
 import ru.practicum.model.event.Event;
 import ru.practicum.model.request.Request;
+import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.RequestRepository;
 import ru.practicum.service.event.EventService;
 import ru.practicum.service.user.UserService;
@@ -39,20 +40,23 @@ public class RequestServiceImpl implements RequestService {
     private final UserService userService;
     private final UserMapper userMapper;
     private final EventService eventService;
+    private final EventRepository eventRepository;
     private final AbstractEventMapper eventMapper;
 
     @Override
     public ParticipationRequestDto addRequestOnEvent(long userId, long eventId) {
         UserDto userDto = userService.getUser(userId);
+        Event eventFromDb = eventRepository.findById(eventId).orElseThrow(() ->
+                new EntityNotFoundException("Внимание! События с таким уникальным номером не существует!"));
+        if (!eventFromDb.getState().equals(State.PUBLISHED)) {
+            log.error("Нельзя участвовать в неопубликованном событии!");
+            throw new IncorrectDataException("Внимание! Нельзя участвовать в неопубликованном событии!");
+        }
         EventFullDto eventFullDto = eventService.getEventById(eventId);
         if (eventFullDto.getInitiator().getId() == userId) {
             log.error("Инициатор события не может добавить запрос на участие в своём событии!");
             throw new IncorrectDataException("Внимание! Инициатор события не может добавить запрос на участие " +
                     "в своём событии!");
-        }
-        if (!eventFullDto.getState().equals(State.PUBLISHED)) {
-            log.error("Нельзя участвовать в неопубликованном событии!");
-            throw new IncorrectDataException("Внимание! Нельзя участвовать в неопубликованном событии!");
         }
         if (requestRepository.findByEventIdAndUserId(eventId, userId).isPresent()) {
             log.error("Нельзя добавить повторный запрос на участие в событии!");

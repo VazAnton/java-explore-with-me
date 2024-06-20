@@ -59,8 +59,6 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     private void validateParameters(String start, String end) {
-        System.err.println(start);
-        System.err.println(end);
         LocalDateTime startTime = LocalDateTime.parse(start, DATE_TIME_FORMATTER);
         LocalDateTime endTime = LocalDateTime.parse(end, DATE_TIME_FORMATTER);
         if (endTime.isBefore(startTime)) {
