@@ -13,7 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.StatisticsClient;
 import ru.practicum.StatisticsModelDtoInput;
 import ru.practicum.StatisticsModelDtoOutput;
+import ru.practicum.dto.category.CategoryDtoOutput;
 import ru.practicum.dto.event.*;
+import ru.practicum.dto.user.UserDto;
+import ru.practicum.enums.State;
+import ru.practicum.enums.Status;
 import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.EntityNotFoundException;
 import ru.practicum.exception.IncorrectDataException;
@@ -22,10 +26,6 @@ import ru.practicum.mapper.CategoryMapper;
 import ru.practicum.mapper.LocationMapper;
 import ru.practicum.mapper.UserMapper;
 import ru.practicum.model.Category;
-import ru.practicum.dto.category.CategoryDtoOutput;
-import ru.practicum.dto.user.UserDto;
-import ru.practicum.enums.State;
-import ru.practicum.enums.Status;
 import ru.practicum.model.Event;
 import ru.practicum.model.Location;
 import ru.practicum.model.User;
@@ -323,7 +323,7 @@ public class EventServiceImpl implements EventService {
                 nowAsString, uris, true);
         if (response.getStatusCode() == HttpStatus.OK) {
             List<StatisticsModelDtoOutput> statistics = objectMapper.convertValue(response.getBody(),
-                    new TypeReference<List<StatisticsModelDtoOutput>>() {
+                    new TypeReference<>() {
                     });
             int viewsSum = 0;
             for (StatisticsModelDtoOutput statisticsModelDtoOutput : statistics) {
@@ -437,7 +437,7 @@ public class EventServiceImpl implements EventService {
                     nowAsString, uris, true);
             if (response.getStatusCode() == HttpStatus.OK) {
                 List<StatisticsModelDtoOutput> statistics = objectMapper.convertValue(response.getBody(),
-                        new TypeReference<List<StatisticsModelDtoOutput>>() {
+                        new TypeReference<>() {
                         });
                 int viewsSum = 0;
                 for (StatisticsModelDtoOutput statisticsModelDtoOutput : statistics) {
