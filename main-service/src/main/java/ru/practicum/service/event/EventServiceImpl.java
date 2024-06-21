@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.StatisticsClient;
 import ru.practicum.StatisticsModelDtoInput;
 import ru.practicum.StatisticsModelDtoOutput;
+import ru.practicum.dto.event.*;
 import ru.practicum.exception.BadRequestException;
 import ru.practicum.exception.EntityNotFoundException;
 import ru.practicum.exception.IncorrectDataException;
@@ -20,15 +21,14 @@ import ru.practicum.mapper.AbstractEventMapper;
 import ru.practicum.mapper.CategoryMapper;
 import ru.practicum.mapper.LocationMapper;
 import ru.practicum.mapper.UserMapper;
-import ru.practicum.model.category.Category;
-import ru.practicum.model.dto.category.CategoryDto;
-import ru.practicum.model.dto.event.*;
-import ru.practicum.model.dto.user.UserDto;
-import ru.practicum.model.enums.State;
-import ru.practicum.model.enums.Status;
-import ru.practicum.model.event.Event;
-import ru.practicum.model.location.Location;
-import ru.practicum.model.user.User;
+import ru.practicum.model.Category;
+import ru.practicum.dto.category.CategoryDtoOutput;
+import ru.practicum.dto.user.UserDto;
+import ru.practicum.enums.State;
+import ru.practicum.enums.Status;
+import ru.practicum.model.Event;
+import ru.practicum.model.Location;
+import ru.practicum.model.User;
 import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.LocationRepository;
 import ru.practicum.repository.RequestRepository;
@@ -68,10 +68,10 @@ public class EventServiceImpl implements EventService {
 
 
     @Override
-    public EventFullDto addEvent(long userId, NewEventDto eventDtoInput) {
-        Event event = eventMapper.newEventDtoToEvent(eventDtoInput);
-        CategoryDto categoryDto = categoryService.getCategory(eventDtoInput.getCategory());
-        Category category = categoryMapper.categoryDtoToCategory(categoryDto);
+    public EventFullDto addEvent(long userId, EventDtoInput eventDtoInput) {
+        Event event = eventMapper.eventDtoInputToEvent(eventDtoInput);
+        CategoryDtoOutput categoryDtoOutput = categoryService.getCategory(eventDtoInput.getCategory());
+        Category category = categoryMapper.categoryDtoToCategory(categoryDtoOutput);
         event.setCategory(category);
         event.setConfirmedRequests(0);
         event.setCreatedOn(LocalDateTime.now());
@@ -116,8 +116,8 @@ public class EventServiceImpl implements EventService {
             eventFromDb.setAnnotation(eventRequestInput.getAnnotation());
         }
         if (eventRequestInput.getCategory() != null) {
-            CategoryDto categoryDto = categoryService.getCategory(eventRequestInput.getCategory());
-            Category category = categoryMapper.categoryDtoToCategory(categoryDto);
+            CategoryDtoOutput categoryDtoOutput = categoryService.getCategory(eventRequestInput.getCategory());
+            Category category = categoryMapper.categoryDtoToCategory(categoryDtoOutput);
             eventFromDb.setCategory(category);
         }
         if (eventRequestInput.getDescription() != null) {
@@ -199,8 +199,8 @@ public class EventServiceImpl implements EventService {
             eventFromDb.setAnnotation(updateEventInput.getAnnotation());
         }
         if (updateEventInput.getCategory() != null) {
-            CategoryDto categoryDto = categoryService.getCategory(updateEventInput.getCategory());
-            Category category = categoryMapper.categoryDtoToCategory(categoryDto);
+            CategoryDtoOutput categoryDtoOutput = categoryService.getCategory(updateEventInput.getCategory());
+            Category category = categoryMapper.categoryDtoToCategory(categoryDtoOutput);
             eventFromDb.setCategory(category);
         }
         if (updateEventInput.getDescription() != null) {

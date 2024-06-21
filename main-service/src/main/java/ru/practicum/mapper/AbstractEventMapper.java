@@ -3,10 +3,10 @@ package ru.practicum.mapper;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import ru.practicum.model.dto.event.EventFullDto;
-import ru.practicum.model.dto.event.EventShortDto;
-import ru.practicum.model.dto.event.NewEventDto;
-import ru.practicum.model.event.Event;
+import ru.practicum.dto.event.EventFullDto;
+import ru.practicum.dto.event.EventShortDto;
+import ru.practicum.dto.event.EventDtoInput;
+import ru.practicum.model.Event;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,7 +23,7 @@ public abstract class AbstractEventMapper {
     @Mapping(source = "eventDate", target = "eventDate", dateFormat = "yyyy-MM-dd HH:mm:ss")
     public abstract EventShortDto eventToEventShortDto(Event event);
 
-    public Event newEventDtoToEvent(NewEventDto eventDtoInput) {
+    public Event eventDtoInputToEvent(EventDtoInput eventDtoInput) {
         if (eventDtoInput == null) {
             return null;
         }

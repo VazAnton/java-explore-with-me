@@ -6,12 +6,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.dto.category.CategoryDtoInput;
+import ru.practicum.dto.category.CategoryDtoOutput;
 import ru.practicum.exception.EntityNotFoundException;
 import ru.practicum.exception.IncorrectDataException;
 import ru.practicum.mapper.CategoryMapper;
-import ru.practicum.model.category.Category;
-import ru.practicum.model.dto.category.CategoryDto;
-import ru.practicum.model.dto.category.NewCategoryDto;
+import ru.practicum.model.Category;
 import ru.practicum.repository.CategoryRepository;
 import ru.practicum.repository.EventRepository;
 
@@ -29,19 +29,19 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryMapper categoryMapper;
 
     @Override
-    public CategoryDto addCategory(NewCategoryDto categoryDtoInput) {
+    public CategoryDtoOutput addCategory(CategoryDtoInput categoryDtoInput) {
         if (categoryRepository.findByName(categoryDtoInput.getName()).isPresent()) {
             log.error("Категория с таким именем уже существует!");
             throw new IncorrectDataException("Внимание! Категория с таким именем уже существует!");
         }
-        Category category = categoryMapper.newCategoryDtoToCategory(categoryDtoInput);
+        Category category = categoryMapper.categoryDtoInputToCategory(categoryDtoInput);
         categoryRepository.save(category);
         log.info("Информация о новой категории успешно сохранена!");
-        return categoryMapper.categoryToCategoryDto(category);
+        return categoryMapper.categoryToCategoryDtoOutput(category);
     }
 
     @Override
-    public CategoryDto updateCategory(NewCategoryDto categoryDtoInput, long catId) {
+    public CategoryDtoOutput updateCategory(CategoryDtoInput categoryDtoInput, long catId) {
         Category categoryFromDb = getCategoryFromDb(catId);
         if (categoryDtoInput.getName().equals(categoryFromDb.getName())) {
             log.info("Имя категории не изменилось.");
@@ -54,7 +54,7 @@ public class CategoryServiceImpl implements CategoryService {
         }
         categoryRepository.save(categoryFromDb);
         log.info("Информация о выбранной категории успешно обновлена!");
-        return categoryMapper.categoryToCategoryDto(categoryFromDb);
+        return categoryMapper.categoryToCategoryDtoOutput(categoryFromDb);
     }
 
     @Override
@@ -79,18 +79,18 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public CategoryDto getCategory(long catId) {
+    public CategoryDtoOutput getCategory(long catId) {
         Category category = getCategoryFromDb(catId);
         log.info("Успешно получена информация о выбранной категории!");
-        return categoryMapper.categoryToCategoryDto(category);
+        return categoryMapper.categoryToCategoryDtoOutput(category);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<CategoryDto> getCategories(Integer from, Integer size) {
+    public List<CategoryDtoOutput> getCategories(Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from, size);
         return categoryRepository.findAll(pageable).getContent().stream()
-                .map(categoryMapper::categoryToCategoryDto)
+                .map(categoryMapper::categoryToCategoryDtoOutput)
                 .collect(Collectors.toList());
     }
 }

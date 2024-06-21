@@ -9,9 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.exception.EntityNotFoundException;
 import ru.practicum.exception.IncorrectDataException;
 import ru.practicum.mapper.UserMapper;
-import ru.practicum.model.dto.user.NewUserRequest;
-import ru.practicum.model.dto.user.UserDto;
-import ru.practicum.model.user.User;
+import ru.practicum.dto.user.NewUserRequest;
+import ru.practicum.dto.user.UserDto;
+import ru.practicum.model.User;
 import ru.practicum.repository.UserRepository;
 
 import java.util.List;
@@ -28,11 +28,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto addUser(NewUserRequest userDtoInput) {
-        if (userDtoInput.getEmail() != null) {
-            if (!userRepository.findAllByEmailIgnoreCase(userDtoInput.getEmail()).isEmpty()) {
-                log.error("Пользователь с таким именем уже существует!");
-                throw new IncorrectDataException("Внимание! Пользователь с таким именем уже существует!");
-            }
+        if (!userRepository.findAllByEmailIgnoreCase(userDtoInput.getEmail()).isEmpty()) {
+            log.error("Пользователь с таким именем уже существует!");
+            throw new IncorrectDataException("Внимание! Пользователь с таким именем уже существует!");
         }
         User newUser = userMapper.newUserRequestToUser(userDtoInput);
         userRepository.save(newUser);

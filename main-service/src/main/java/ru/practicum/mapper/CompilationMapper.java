@@ -1,32 +1,32 @@
 package ru.practicum.mapper;
 
 import org.springframework.stereotype.Component;
-import ru.practicum.model.compilation.Compilation;
-import ru.practicum.model.dto.compilation.CompilationDto;
-import ru.practicum.model.dto.compilation.NewCompilationDto;
-import ru.practicum.model.dto.compilation.UpdateCompilationRequest;
+import ru.practicum.model.Compilation;
+import ru.practicum.dto.compilation.CompilationDtoOutput;
+import ru.practicum.dto.compilation.CompilationDtoInput;
+import ru.practicum.dto.compilation.UpdateCompilationRequest;
 
 @Component
 public class CompilationMapper {
 
-    public CompilationDto compilationToCompilationDto(Compilation compilation) {
+    public CompilationDtoOutput compilationToCompilationDtoOutput(Compilation compilation) {
         if (compilation == null) {
             return null;
         }
-        CompilationDto compilationDto = new CompilationDto();
-        compilationDto.setId(compilation.getId());
-        compilationDto.setPinned(compilation.getPinned());
-        compilationDto.setTitle(compilation.getTitle());
-        return compilationDto;
+        CompilationDtoOutput compilationDtoOutput = new CompilationDtoOutput();
+        compilationDtoOutput.setId(compilation.getId());
+        compilationDtoOutput.setPinned(compilation.getPinned());
+        compilationDtoOutput.setTitle(compilation.getTitle());
+        return compilationDtoOutput;
     }
 
-    public Compilation newCompilationDtoToCompilation(NewCompilationDto newCompilationDto) {
-        if (newCompilationDto == null) {
+    public Compilation compilationDtoInputToCompilation(CompilationDtoInput compilationDtoInput) {
+        if (compilationDtoInput == null) {
             return null;
         }
         Compilation compilation = new Compilation();
-        compilation.setPinned(newCompilationDto.getPinned());
-        compilation.setTitle(newCompilationDto.getTitle());
+        compilation.setPinned(compilationDtoInput.getPinned());
+        compilation.setTitle(compilationDtoInput.getTitle());
         return compilation;
     }
 

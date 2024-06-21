@@ -9,12 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.exception.EntityNotFoundException;
 import ru.practicum.mapper.AbstractEventMapper;
 import ru.practicum.mapper.CompilationMapper;
-import ru.practicum.model.compilation.Compilation;
-import ru.practicum.model.dto.compilation.CompilationDto;
-import ru.practicum.model.dto.compilation.NewCompilationDto;
-import ru.practicum.model.dto.compilation.UpdateCompilationRequest;
-import ru.practicum.model.dto.event.EventShortDto;
-import ru.practicum.model.event.Event;
+import ru.practicum.model.Compilation;
+import ru.practicum.dto.compilation.CompilationDtoOutput;
+import ru.practicum.dto.compilation.CompilationDtoInput;
+import ru.practicum.dto.compilation.UpdateCompilationRequest;
+import ru.practicum.dto.event.EventShortDto;
+import ru.practicum.model.Event;
 import ru.practicum.repository.CompilationRepository;
 import ru.practicum.repository.EventRepository;
 
@@ -34,22 +34,22 @@ public class CompilationServiceImpl implements CompilationService {
     private final EventRepository eventRepository;
     private final AbstractEventMapper eventMapper;
 
-    private CompilationDto setEventsToCompilationDto(Compilation compilation, Set<Event> events) {
-        CompilationDto compilationDto = compilationMapper.compilationToCompilationDto(compilation);
+    private CompilationDtoOutput setEventsToCompilationDto(Compilation compilation, Set<Event> events) {
+        CompilationDtoOutput compilationDtoOutput = compilationMapper.compilationToCompilationDtoOutput(compilation);
         if (events.isEmpty()) {
-            compilationDto.setEvents(Collections.emptySet());
+            compilationDtoOutput.setEvents(Collections.emptySet());
         } else {
             Set<EventShortDto> shortEvents = events.stream()
                     .map(eventMapper::eventToEventShortDto)
                     .collect(Collectors.toSet());
-            compilationDto.setEvents(shortEvents);
+            compilationDtoOutput.setEvents(shortEvents);
         }
-        return compilationDto;
+        return compilationDtoOutput;
     }
 
     @Override
-    public CompilationDto addCompilation(NewCompilationDto compilationDtoInput) {
-        Compilation compilation = compilationMapper.newCompilationDtoToCompilation(compilationDtoInput);
+    public CompilationDtoOutput addCompilation(CompilationDtoInput compilationDtoInput) {
+        Compilation compilation = compilationMapper.compilationDtoInputToCompilation(compilationDtoInput);
         Set<Event> events;
         if (compilationDtoInput.getPinned() == null) {
             compilation.setPinned(false);
@@ -66,7 +66,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
-    public CompilationDto updateCompilation(UpdateCompilationRequest updateCompilationRequest, long compId) {
+    public CompilationDtoOutput updateCompilation(UpdateCompilationRequest updateCompilationRequest, long compId) {
         Compilation compilationFromDb = getCompilationFromDb(compId);
         Set<Event> events;
         if (updateCompilationRequest.getPinned() != null) {
@@ -104,7 +104,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     @Transactional(readOnly = true)
-    public CompilationDto getCompilationById(long compId) {
+    public CompilationDtoOutput getCompilationById(long compId) {
         Compilation compilation = getCompilationFromDb(compId);
         log.info("Успешно получена информация о выбранной подборке событий!");
         return setEventsToCompilationDto(compilation, compilation.getEvents());
@@ -112,7 +112,7 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CompilationDto> getCompilations(Boolean pinned, Integer from, Integer size) {
+    public List<CompilationDtoOutput> getCompilations(Boolean pinned, Integer from, Integer size) {
         Pageable pageable = PageRequest.of(from, size);
         if (pinned != null) {
             return compilationRepository.findAllByPinned(pinned, pageable).getContent().stream()

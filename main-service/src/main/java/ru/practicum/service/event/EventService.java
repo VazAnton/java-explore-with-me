@@ -1,6 +1,6 @@
 package ru.practicum.service.event;
 
-import ru.practicum.model.dto.event.*;
+import ru.practicum.dto.event.*;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ public interface EventService {
     List<EventFullDto> getAllEventInfoByParameters(List<Long> users, List<String> states, List<Long> categories,
                                                    String rangeStart, String rangeEnd, Integer from, Integer size);
 
-    EventFullDto addEvent(long userId, NewEventDto eventDtoInput);
+    EventFullDto addEvent(long userId, EventDtoInput eventDtoInput);
 
     EventFullDto updateEventLikeUser(UpdateEventUserRequest eventDtoInput, long userId, long eventId);
 
