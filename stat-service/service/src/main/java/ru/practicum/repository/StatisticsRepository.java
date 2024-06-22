@@ -64,4 +64,8 @@ public interface StatisticsRepository extends JpaRepository<Statistic, Long> {
             "FROM Statistic AS s " +
             "WHERE s.uri IN :uris")
     List<Statistic> findAllStatisticsByUris(List<String> uris);
+
+    List<Statistic> findAllByUriIn(List<String> uris);
+
+    List<Statistic> findDistinctByIpAndUri(String ip, String uri);
 }

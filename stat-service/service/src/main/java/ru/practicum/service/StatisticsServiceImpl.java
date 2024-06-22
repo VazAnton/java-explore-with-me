@@ -32,11 +32,17 @@ public class StatisticsServiceImpl implements StatisticsService {
         statisticsRepository.save(statistic);
     }
 
-    private List<StatisticsModelDtoOutput> getStatisticByUris(List<StatisticsModelDtoOutput> statistics, List<String> uris) {
+    private List<StatisticsModelDtoOutput> getStatisticByUris(List<StatisticsModelDtoOutput> statistics,
+                                                              List<String> uris) {
+        List<String> uri = new ArrayList<>();
+        for (String s : uris) {
+            uri.add(s.replace("[", "").replace("]", ""));
+        }
         List<StatisticsModelDtoOutput> result = new ArrayList<>();
         for (StatisticsModelDtoOutput statistic : statistics) {
-            for (String uri : uris) {
-                if (statistic.getUri().equals(uri)) {
+            for (String ur : uri) {
+
+                if (statistic.getUri().equals(ur)) {
                     result.add(statistic);
                 }
             }
