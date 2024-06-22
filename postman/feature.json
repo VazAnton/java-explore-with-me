@@ -630,8 +630,8 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Код ответа должен быть 404 и содержать данные в формате json\", function() {\r",
-							"pm.response.to.be.notFound;\r",
+							"pm.test(\"Код ответа должен быть 409 и содержать данные в формате json\", function() {\r",
+							"pm.response.to.have.status(409);\r",
 							"pm.response.to.be.withBody;\r",
 							"pm.response.to.be.json;    \r",
 							"});"
