@@ -406,7 +406,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"annotation\": \"Adipisci quos sit veritatis qui officia nemo velit perferendis nostrum. Explicabo mollitia iusto est doloribus. Eveniet aut et assumenda et aut maxime qui ut eum. Omnis temporibus id voluptatem quasi. Error animi quibusdam quia vel ut est.\",\r\n    \"category\": 1,\r\n    \"description\": \"In aut consequatur provident. Aut est ratione. Omnis harum alias quia. Perferendis minima sed ipsum veniam ab laudantium occaecati. Illo qui distinctio.\\n \\rAutem consequatur laborum quasi ex consectetur quia sunt eaque. Minima id non asperiores eaque magni fugiat omnis quod enim. In molestiae non delectus nihil eveniet quia magni animi ducimus. Deleniti veniam consequatur sunt aut et id ea sint enim. Repellat non aliquid cupiditate labore et enim.\\n \\rQuas voluptatem incidunt perspiciatis quod rerum voluptatem. Tenetur autem velit praesentium. Nisi et dolorum sapiente doloribus quaerat. Voluptate vel aperiam error. Eos provident et. Rerum rerum animi dignissimos maxime voluptas rerum laudantium ut quos.\",\r\n    \"eventDate\": \"2024-06-23 06:21:14\",\r\n    \"location\": {\r\n        \"lat\": 34.8809,\r\n        \"lon\": -161.0671\r\n    },\r\n    \"paid\": false,\r\n    \"participantLimit\": 291,\r\n    \"requestModeration\": true,\r\n    \"title\": \"Commodi optio soluta eum quia est error iste dolore quaerat.\"}",
+					"raw": "{\r\n    \"annotation\": \"Adipisci quos sit veritatis qui officia nemo velit perferendis nostrum. Explicabo mollitia iusto est doloribus. Eveniet aut et assumenda et aut maxime qui ut eum. Omnis temporibus id voluptatem quasi. Error animi quibusdam quia vel ut est.\",\r\n    \"category\": 1,\r\n    \"description\": \"In aut consequatur provident. Aut est ratione. Omnis harum alias quia. Perferendis minima sed ipsum veniam ab laudantium occaecati. Illo qui distinctio.\\n \\rAutem consequatur laborum quasi ex consectetur quia sunt eaque. Minima id non asperiores eaque magni fugiat omnis quod enim. In molestiae non delectus nihil eveniet quia magni animi ducimus. Deleniti veniam consequatur sunt aut et id ea sint enim. Repellat non aliquid cupiditate labore et enim.\\n \\rQuas voluptatem incidunt perspiciatis quod rerum voluptatem. Tenetur autem velit praesentium. Nisi et dolorum sapiente doloribus quaerat. Voluptate vel aperiam error. Eos provident et. Rerum rerum animi dignissimos maxime voluptas rerum laudantium ut quos.\",\r\n    \"eventDate\": \"2024-06-25 06:21:14\",\r\n    \"location\": {\r\n        \"lat\": 34.8809,\r\n        \"lon\": -161.0671\r\n    },\r\n    \"paid\": false,\r\n    \"participantLimit\": 291,\r\n    \"requestModeration\": true,\r\n    \"title\": \"Commodi optio soluta eum quia est error iste dolore quaerat.\"}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -533,7 +533,7 @@
 							"        pm.collectionVariables.set(\"uid\", user.id)\r",
 							"        const category = await api.addCategory(1);\r",
 							"        const event = await api.addEvent(1);\r",
-							"        comment = rnd.addComment()\r",
+							"        comment = rnd.addComment(event.id, user.id);\r",
 							"    } catch(err) {\r",
 							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
 							"    }\r",
@@ -617,6 +617,96 @@
 					"port": "8080",
 					"path": [
 						"comments",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Получение списка комментариев пользователя",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const body = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Ответ должен содержать код ответа 200 и тело в формате json\", () => {\r",
+							"pm.response.to.be.ok;\r",
+							"pm.response.to.be.withBody;\r",
+							"pm.response.to.be.json;});\r",
+							"\r",
+							"pm.test(\"Не должно быть найдено ни одного комментария по заданному фильтру\", function () {\r",
+							"    pm.expect(body.length).to.eql(1);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {\r",
+							"    const api = new API(pm);\r",
+							"    const rnd = new RandomUtils();\r",
+							"\r",
+							"    try {\r",
+							"         const user = await api.addUser(1);\r",
+							"         const category = await api.addCategory(1);\r",
+							"         let event = await api.addEvent(1);\r",
+							"         let comment = await api.addComment(event.id, user.id);\r",
+							"        pm.collectionVariables.set('response', comment);\r",
+							"        pm.collectionVariables.set('compid', comment.id);\r",
+							"    } catch(err) {\r",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+							"    }\r",
+							"};\r",
+							"\r",
+							"const interval = setInterval(() => {}, 1000);\r",
+							"\r",
+							"setTimeout(async () => \r",
+							"    {\r",
+							"        try {\r",
+							"            // выполняем наш скрипт\r",
+							"            await main();\r",
+							"        } catch (e) {\r",
+							"            console.error(e);\r",
+							"        } finally {\r",
+							"            clearInterval(interval);\r",
+							"        }\r",
+							"    },  \r",
+							"    100 \r",
+							");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Explorer-User-Id",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/comments/admin/users/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"comments",
+						"admin",
+						"users",
 						"1"
 					]
 				}
@@ -1086,6 +1176,89 @@
 			"response": []
 		},
 		{
+			"name": "Получение списка комментариев к событию",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const body = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Ответ должен содержать код ответа 200 и тело в формате json\", () => {\r",
+							"pm.response.to.be.ok;\r",
+							"pm.response.to.be.withBody;\r",
+							"pm.response.to.be.json;});\r",
+							"\r",
+							"pm.test(\"Не должно найтись ни одного комментария к несуществующему событию\", function () {\r",
+							"    pm.expect(body.length).to.eql(2);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const main = async () => {\r",
+							"    const api = new API(pm);\r",
+							"    const rnd = new RandomUtils();\r",
+							"\r",
+							"    try {\r",
+							"         const user = await api.addUser(1);\r",
+							"         const category = await api.addCategory(1);\r",
+							"         let event = await api.addEvent(1);\r",
+							"         let comment = await api.addComment(event.id, user.id);\r",
+							"        pm.collectionVariables.set('response', comment);\r",
+							"        pm.collectionVariables.set('compid', comment.id);\r",
+							"    } catch(err) {\r",
+							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
+							"    }\r",
+							"};\r",
+							"\r",
+							"const interval = setInterval(() => {}, 1000);\r",
+							"\r",
+							"setTimeout(async () => \r",
+							"    {\r",
+							"        try {\r",
+							"            // выполняем наш скрипт\r",
+							"            await main();\r",
+							"        } catch (e) {\r",
+							"            console.error(e);\r",
+							"        } finally {\r",
+							"            clearInterval(interval);\r",
+							"        }\r",
+							"    },  \r",
+							"    100 \r",
+							");"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/comments/admin/events/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"comments",
+						"admin",
+						"events",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Попытка удаления комментария другим пользователем",
 			"event": [
 				{
@@ -1164,174 +1337,6 @@
 						"comments",
 						"admin",
 						"1"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Получение списка комментариев пользователя",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"const body = pm.response.json();\r",
-							"\r",
-							"pm.test(\"Ответ должен содержать код ответа 200 и тело в формате json\", () => {\r",
-							"pm.response.to.be.ok;\r",
-							"pm.response.to.be.withBody;\r",
-							"pm.response.to.be.json;});\r",
-							"\r",
-							"pm.test(\"Не должно быть найдено ни одного комментария по заданному фильтру\", function () {\r",
-							"    pm.expect(body.length).to.eql(0);\r",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"const main = async () => {\r",
-							"    const api = new API(pm);\r",
-							"    const rnd = new RandomUtils();\r",
-							"\r",
-							"    try {\r",
-							"        const user = await api.addUser(1);\r",
-							"        const category = await api.addCategory(1);\r",
-							"        let event = await api.addEvent(1);\r",
-							"        \r",
-							"        let comment = rnd.addComment(1);\r",
-							"    } catch(err) {\r",
-							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
-							"    }\r",
-							"};\r",
-							"\r",
-							"const interval = setInterval(() => {}, 1000);\r",
-							"\r",
-							"setTimeout(async () => \r",
-							"    {\r",
-							"        try {\r",
-							"            // выполняем наш скрипт\r",
-							"            await main();\r",
-							"        } catch (e) {\r",
-							"            console.error(e);\r",
-							"        } finally {\r",
-							"            clearInterval(interval);\r",
-							"        }\r",
-							"    },  \r",
-							"    100 \r",
-							");"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "X-Explorer-User-Id",
-						"value": "1",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "http://localhost:8080/comments/admin",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"comments",
-						"admin"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Получение списка комментариев к событию",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"const body = pm.response.json();\r",
-							"\r",
-							"pm.test(\"Ответ должен содержать код ответа 200 и тело в формате json\", () => {\r",
-							"pm.response.to.be.ok;\r",
-							"pm.response.to.be.withBody;\r",
-							"pm.response.to.be.json;});\r",
-							"\r",
-							"pm.test(\"Не должно найтись ни одного комментария к несуществующему событию\", function () {\r",
-							"    pm.expect(body.length).to.eql(0);\r",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"const main = async () => {\r",
-							"    const api = new API(pm);\r",
-							"    const rnd = new RandomUtils();\r",
-							"\r",
-							"    try {\r",
-							"        const user = await api.addUser(1);\r",
-							"        const category = await api.addCategory(1);\r",
-							"        let event = await api.addEvent(1);\r",
-							"        \r",
-							"        let comment = rnd.getComments(event.id);\r",
-							"    } catch(err) {\r",
-							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
-							"    }\r",
-							"};\r",
-							"\r",
-							"const interval = setInterval(() => {}, 1000);\r",
-							"\r",
-							"setTimeout(async () => \r",
-							"    {\r",
-							"        try {\r",
-							"            // выполняем наш скрипт\r",
-							"            await main();\r",
-							"        } catch (e) {\r",
-							"            console.error(e);\r",
-							"        } finally {\r",
-							"            clearInterval(interval);\r",
-							"        }\r",
-							"    },  \r",
-							"    100 \r",
-							");"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8080/comments/admin/events/2",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"comments",
-						"admin",
-						"events",
-						"2"
 					]
 				}
 			},

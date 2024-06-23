@@ -2,8 +2,6 @@ package ru.practicum.service.comment;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.comment.CommentDtoInput;
@@ -17,6 +15,7 @@ import ru.practicum.model.User;
 import ru.practicum.repository.CommentRepository;
 import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.UserRepository;
+import ru.practicum.service.user.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,6 +28,7 @@ import java.util.stream.Collectors;
 public class CommentServiceImpl implements CommentService {
 
     private final UserRepository userRepository;
+    private final UserService userService;
     private final EventRepository eventRepository;
     private final CommentRepository commentRepository;
     private final AbstractCommentMapper commentMapper;
@@ -84,17 +84,15 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<CommentDtoOutput> getCommentsOfUser(long userId, Integer from, Integer size) {
-        Pageable pageable = PageRequest.of(size, size);
-        return commentRepository.findAllByAuthorId(userId, pageable).getContent()
-                .stream()
+        userService.getUser(userId);
+        return commentRepository.getCommentsByAuthor(userId, size, from).stream()
                 .map(commentMapper::commentToCommentDtoOutput)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<CommentDtoOutput> getCommentsOfEvent(long eventId, Integer from, Integer size) {
-        Pageable pageable = PageRequest.of(size, size);
-        return commentRepository.findAllByEventId(eventId, pageable).getContent()
+        return commentRepository.getAllByEventId(eventId, size, from)
                 .stream()
                 .map(commentMapper::commentToCommentDtoOutput)
                 .collect(Collectors.toList());

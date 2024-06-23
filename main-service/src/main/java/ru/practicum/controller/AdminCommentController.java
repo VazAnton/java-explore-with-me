@@ -15,8 +15,8 @@ public class AdminCommentController {
 
     private final CommentService commentService;
 
-    @GetMapping
-    public List<CommentDtoOutput> getCommentsOfUser(@RequestHeader("X-Explorer-User-Id") long userId,
+    @GetMapping("/users/{userId}")
+    public List<CommentDtoOutput> getCommentsOfUser(@PathVariable long userId,
                                                     @RequestParam(defaultValue = "0") Integer from,
                                                     @RequestParam(defaultValue = "10") Integer size) {
         return commentService.getCommentsOfUser(userId, from, size);
