@@ -6,11 +6,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.dto.user.NewUserRequest;
+import ru.practicum.dto.user.UserDto;
 import ru.practicum.exception.EntityNotFoundException;
 import ru.practicum.exception.IncorrectDataException;
 import ru.practicum.mapper.UserMapper;
-import ru.practicum.dto.user.NewUserRequest;
-import ru.practicum.dto.user.UserDto;
 import ru.practicum.model.User;
 import ru.practicum.repository.UserRepository;
 
